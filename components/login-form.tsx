@@ -94,18 +94,6 @@ export function LoginForm() {
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm font-medium text-blue-900 mb-2">Usuários de teste:</p>
-            <div className="text-xs text-blue-700 space-y-1">
-              <p>
-                <strong>Admin:</strong> admin / admin123
-              </p>
-              <p>
-                <strong>Usuário:</strong> usuario / user123
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
