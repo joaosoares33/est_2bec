@@ -6,6 +6,7 @@ import { ParkingCardList } from "@/components/parking-card-list"
 import { UserManagement } from "@/components/user-management"
 import { LoginForm } from "@/components/login-form"
 import { Navigation } from "@/components/navigation"
+import { Dashboard } from "@/components/dashboard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, List, ArrowLeft, Users } from "lucide-react"
@@ -50,43 +51,46 @@ export default function HomePage() {
     switch (viewMode) {
       case "home":
         return (
-          <div className="max-w-2xl mx-auto">
-            <Card className="border-blue-200">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-blue-900">Bem-vindo ao Sistema</CardTitle>
-                <p className="text-blue-700">Gerencie os cartões de estacionamento do 2º BEC</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button onClick={() => setViewMode("form")} className="bg-blue-600 hover:bg-blue-700" size="lg">
-                    <Plus className="mr-2 h-5 w-5" />
-                    Cadastrar Novo Cartão
-                  </Button>
+          <div className="space-y-8">
+            <Dashboard />
 
-                  <Button
-                    variant="outline"
-                    className="border-blue-200 hover:bg-blue-50 bg-transparent"
-                    size="lg"
-                    onClick={() => setViewMode("list")}
-                  >
-                    <List className="mr-2 h-5 w-5" />
-                    Ver Cartões Cadastrados
-                  </Button>
+            <div className="max-w-2xl mx-auto">
+              <Card className="border-blue-200">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-xl text-blue-900">Ações Rápidas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Button onClick={() => setViewMode("form")} className="bg-blue-600 hover:bg-blue-700" size="lg">
+                      <Plus className="mr-2 h-5 w-5" />
+                      Cadastrar Novo Cartão
+                    </Button>
 
-                  {isAdmin && (
                     <Button
                       variant="outline"
-                      className="border-blue-200 hover:bg-blue-50 sm:col-span-2 bg-transparent"
+                      className="border-blue-200 hover:bg-blue-50 bg-transparent"
                       size="lg"
-                      onClick={() => setViewMode("users")}
+                      onClick={() => setViewMode("list")}
                     >
-                      <Users className="mr-2 h-5 w-5" />
-                      Gerenciar Usuários
+                      <List className="mr-2 h-5 w-5" />
+                      Ver Cartões Cadastrados
                     </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+
+                    {isAdmin && (
+                      <Button
+                        variant="outline"
+                        className="border-blue-200 hover:bg-blue-50 sm:col-span-2 bg-transparent"
+                        size="lg"
+                        onClick={() => setViewMode("users")}
+                      >
+                        <Users className="mr-2 h-5 w-5" />
+                        Gerenciar Usuários
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )
 
