@@ -47,9 +47,15 @@ const defaultFilters: FilterOptions = {
   sortOrder: "asc",
 }
 
+const ITEMS_PER_PAGE = 12 // Número de cartões por página
+const LOAD_MORE_INCREMENT = 8 // Quantos carregar a mais ao clicar
+
 export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
   const [cards, setCards] = useState<ParkingCard[]>([])
   const [filteredCards, setFilteredCards] = useState<ParkingCard[]>([])
+  const [displayedCards, setDisplayedCards] = useState<ParkingCard[]>([]) // Novos cartões exibidos
+  const [currentPage, setCurrentPage] = useState(1) // Controle de página atual
+  const [itemsToShow, setItemsToShow] = useState(ITEMS_PER_PAGE) // Quantos itens mostrar
   const [filters, setFilters] = useState<FilterOptions>(defaultFilters)
   const [selectedCards, setSelectedCards] = useState<Set<string>>(new Set())
   const [showBulkActions, setShowBulkActions] = useState(false)
@@ -71,6 +77,11 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
   }, [filters, cards])
 
   useEffect(() => {
+    const cardsToShow = filteredCards.slice(0, itemsToShow)
+    setDisplayedCards(cardsToShow)
+  }, [filteredCards, itemsToShow])
+
+  useEffect(() => {
     setShowBulkActions(selectedCards.size > 0)
   }, [selectedCards])
 
@@ -81,6 +92,8 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
     console.log("Dados dos cartões:", allCards)
     setCards(allCards)
     setSelectedCards(new Set()) // Clear selection when reloading
+    setItemsToShow(ITEMS_PER_PAGE)
+    setCurrentPage(1)
   }
 
   const applyFilters = () => {
@@ -138,6 +151,8 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
 
     console.log("Cartões filtrados:", filtered.length)
     setFilteredCards(filtered)
+    setItemsToShow(ITEMS_PER_PAGE)
+    setCurrentPage(1)
   }
 
   const handleDelete = (id: string, militaryName: string) => {
@@ -308,8 +323,32 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
     }
   }
 
-  const allSelected = filteredCards.length > 0 && selectedCards.size === filteredCards.length
-  const someSelected = selectedCards.size > 0 && selectedCards.size < filteredCards.length
+  const handleLoadMore = () => {
+    const newItemsToShow = itemsToShow + LOAD_MORE_INCREMENT
+    setItemsToShow(newItemsToShow)
+    setCurrentPage(Math.ceil(newItemsToShow / ITEMS_PER_PAGE))
+
+    toast({
+      title: "📄 Carregando mais cartões",
+      description: `Exibindo ${Math.min(newItemsToShow, filteredCards.length)} de ${filteredCards.length} cartões`,
+    })
+  }
+
+  const handleShowAll = () => {
+    setItemsToShow(filteredCards.length)
+    setCurrentPage(Math.ceil(filteredCards.length / ITEMS_PER_PAGE))
+
+    toast({
+      title: "📋 Todos os cartões carregados",
+      description: `Exibindo todos os ${filteredCards.length} cartões encontrados`,
+    })
+  }
+
+  const allSelected = displayedCards.length > 0 && selectedCards.size === displayedCards.length
+  const someSelected = selectedCards.size > 0 && selectedCards.size < displayedCards.length
+
+  const hasMoreCards = displayedCards.length < filteredCards.length
+  const remainingCards = filteredCards.length - displayedCards.length
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -326,8 +365,9 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">Resultados da Busca</h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            {filteredCards.length} de {cards.length} cartão{filteredCards.length !== 1 ? "s" : ""} encontrado
-            {filteredCards.length !== 1 ? "s" : ""}
+            Exibindo {displayedCards.length} de {filteredCards.length} cartão{filteredCards.length !== 1 ? "s" : ""}{" "}
+            encontrado
+            {filteredCards.length !== 1 ? "s" : ""} ({cards.length} total)
             {selectedCards.size > 0 && (
               <span className="ml-2 text-primary font-medium">
                 ({selectedCards.size} selecionado{selectedCards.size > 1 ? "s" : ""})
@@ -404,7 +444,7 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
       )}
 
       {/* Controle de seleção */}
-      {filteredCards.length > 0 && (
+      {displayedCards.length > 0 && (
         <div className="flex items-center gap-2">
           <Checkbox
             checked={allSelected}
@@ -418,6 +458,9 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
           />
           <span className="text-sm text-muted-foreground">
             {allSelected ? "Desmarcar todos" : someSelected ? "Selecionar todos" : "Selecionar todos"}
+            {displayedCards.length < filteredCards.length && (
+              <span className="text-xs text-muted-foreground ml-1">(dos {displayedCards.length} exibidos)</span>
+            )}
           </span>
         </div>
       )}
@@ -445,140 +488,178 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {filteredCards.map((card) => (
-            <Card
-              key={card.id}
-              className={`hover:shadow-lg transition-all duration-200 ${
-                selectedCards.has(card.id) ? "ring-2 ring-primary bg-primary/5" : ""
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                    <Checkbox
-                      checked={selectedCards.has(card.id)}
-                      onCheckedChange={(checked) => handleSelectCard(card.id, checked as boolean)}
-                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
-                    />
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                      <CardTitle className="text-sm sm:text-lg truncate">{card.militaryName}</CardTitle>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            {displayedCards.map((card) => (
+              <Card
+                key={card.id}
+                className={`hover:shadow-lg transition-all duration-200 ${
+                  selectedCards.has(card.id) ? "ring-2 ring-primary bg-primary/5" : ""
+                }`}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <Checkbox
+                        checked={selectedCards.has(card.id)}
+                        onCheckedChange={(checked) => handleSelectCard(card.id, checked as boolean)}
+                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary flex-shrink-0"
+                      />
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                        <CardTitle className="text-sm sm:text-lg truncate">{card.militaryName}</CardTitle>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={card.status === "active" ? "default" : "secondary"}
+                      className="text-xs flex-shrink-0"
+                    >
+                      {card.status === "active" ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground ml-6 sm:ml-8 truncate">{card.rank}</p>
+                </CardHeader>
+
+                <CardContent className="space-y-3 sm:space-y-4">
+                  {/* Informações do militar */}
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                      <span className="font-medium text-muted-foreground flex-shrink-0">Nome de Guerra:</span>
+                      <span className="text-foreground truncate">{card.warName}</span>
                     </div>
                   </div>
-                  <Badge variant={card.status === "active" ? "default" : "secondary"} className="text-xs flex-shrink-0">
-                    {card.status === "active" ? "Ativo" : "Inativo"}
-                  </Badge>
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground ml-6 sm:ml-8 truncate">{card.rank}</p>
-              </CardHeader>
 
-              <CardContent className="space-y-3 sm:space-y-4">
-                {/* Informações do militar */}
-                <div className="space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-                    <span className="font-medium text-muted-foreground flex-shrink-0">Nome de Guerra:</span>
-                    <span className="text-foreground truncate">{card.warName}</span>
-                  </div>
-                </div>
-
-                {/* Informações do veículo */}
-                <div className="space-y-2 border-t pt-3">
-                  <div className="flex items-center gap-2">
-                    <Car className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-                    <span className="font-medium text-xs sm:text-sm">Veículo</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
-                    <div className="min-w-0">
-                      <span className="font-medium text-muted-foreground block">Placa:</span>
-                      <p className="text-foreground font-mono text-xs sm:text-sm truncate">{card.vehiclePlate}</p>
+                  {/* Informações do veículo */}
+                  <div className="space-y-2 border-t pt-3">
+                    <div className="flex items-center gap-2">
+                      <Car className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+                      <span className="font-medium text-xs sm:text-sm">Veículo</span>
                     </div>
-                    {card.vehicleColor && (
+
+                    <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
                       <div className="min-w-0">
-                        <span className="font-medium text-muted-foreground block">Cor:</span>
-                        <p className="text-foreground text-xs sm:text-sm truncate">{card.vehicleColor}</p>
+                        <span className="font-medium text-muted-foreground block">Placa:</span>
+                        <p className="text-foreground font-mono text-xs sm:text-sm truncate">{card.vehiclePlate}</p>
+                      </div>
+                      {card.vehicleColor && (
+                        <div className="min-w-0">
+                          <span className="font-medium text-muted-foreground block">Cor:</span>
+                          <p className="text-foreground text-xs sm:text-sm truncate">{card.vehicleColor}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {card.vehicleModel && (
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-medium text-muted-foreground">Modelo:</span>
+                        <p className="text-foreground truncate">{card.vehicleModel}</p>
+                      </div>
+                    )}
+
+                    {card.vehicleType && (
+                      <div className="text-xs sm:text-sm">
+                        <span className="font-medium text-muted-foreground">Tipo:</span>
+                        <p className="text-foreground">{card.vehicleType}</p>
                       </div>
                     )}
                   </div>
 
-                  {card.vehicleModel && (
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-muted-foreground">Modelo:</span>
-                      <p className="text-foreground truncate">{card.vehicleModel}</p>
-                    </div>
-                  )}
+                  {/* Data de cadastro */}
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">Cadastrado em {formatDate(card.createdAt)}</span>
+                  </div>
 
-                  {card.vehicleType && (
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium text-muted-foreground">Tipo:</span>
-                      <p className="text-foreground">{card.vehicleType}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Data de cadastro */}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
-                  <Calendar className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate">Cadastrado em {formatDate(card.createdAt)}</span>
-                </div>
-
-                {/* Botões de ação */}
-                <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleGeneratePDF(card)}
-                    className="bg-transparent text-primary hover:bg-primary hover:text-white text-xs sm:text-sm p-1 sm:p-2"
-                  >
-                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">PDF</span>
-                  </Button>
-
-                  {onEdit && (
+                  {/* Botões de ação */}
+                  <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onEdit(card)}
-                      className="bg-transparent text-xs sm:text-sm p-1 sm:p-2"
+                      onClick={() => handleGeneratePDF(card)}
+                      className="bg-transparent text-primary hover:bg-primary hover:text-white text-xs sm:text-sm p-1 sm:p-2"
                     >
-                      <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                      <span className="hidden sm:inline">Editar</span>
+                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                      <span className="hidden sm:inline">PDF</span>
                     </Button>
-                  )}
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleToggleStatus(card.id)}
-                    className="bg-transparent text-xs sm:text-sm p-1 sm:p-2 col-span-1"
-                  >
-                    {card.status === "active" ? (
-                      <>
-                        <ToggleRight className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Desativar</span>
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Ativar</span>
-                      </>
+                    {onEdit && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(card)}
+                        className="bg-transparent text-xs sm:text-sm p-1 sm:p-2"
+                      >
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Editar</span>
+                      </Button>
                     )}
-                  </Button>
 
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleToggleStatus(card.id)}
+                      className="bg-transparent text-xs sm:text-sm p-1 sm:p-2 col-span-1"
+                    >
+                      {card.status === "active" ? (
+                        <>
+                          <ToggleRight className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Desativar</span>
+                        </>
+                      ) : (
+                        <>
+                          <ToggleLeft className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Ativar</span>
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(card.id, card.militaryName)}
+                      className="bg-transparent text-destructive hover:text-destructive-foreground hover:bg-destructive text-xs sm:text-sm p-1 sm:p-2"
+                    >
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {hasMoreCards && (
+            <div className="flex flex-col items-center gap-4 pt-6">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {displayedCards.length} de {filteredCards.length} cartões
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {remainingCards} cartão{remainingCards > 1 ? "s" : ""} restante{remainingCards > 1 ? "s" : ""}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <Button
+                  onClick={handleLoadMore}
+                  variant="outline"
+                  className="bg-primary/5 hover:bg-primary hover:text-white border-primary/20 w-full sm:w-auto"
+                >
+                  Carregar Mais ({Math.min(LOAD_MORE_INCREMENT, remainingCards)})
+                </Button>
+
+                {remainingCards > LOAD_MORE_INCREMENT && (
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(card.id, card.militaryName)}
-                    className="bg-transparent text-destructive hover:text-destructive-foreground hover:bg-destructive text-xs sm:text-sm p-1 sm:p-2"
+                    onClick={handleShowAll}
+                    variant="ghost"
+                    className="text-primary hover:bg-primary/10 w-full sm:w-auto"
                   >
-                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    Mostrar Todos ({remainingCards})
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* Dialog de confirmação */}

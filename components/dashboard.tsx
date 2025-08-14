@@ -2,11 +2,87 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { ParkingStorage } from "@/lib/parking-storage"
-import { Car, Bike, Users, Clock, CheckCircle, XCircle, AlertTriangle, Calendar } from "lucide-react"
-import { useMemo } from "react"
+import { Car, Bike, Users, Clock, CheckCircle, XCircle, AlertTriangle, Calendar, Eye } from "lucide-react"
+import { useMemo, useState } from "react"
+
+function ExpiringCardsModal({ isOpen, onClose, cards }: { isOpen: boolean; onClose: () => void; cards: any[] }) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
+        <div className="p-6 border-b">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-blue-900 flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2 text-orange-600" />
+              Cartões Próximos ao Vencimento
+            </h2>
+            <Button variant="outline" onClick={onClose}>
+              Fechar
+            </Button>
+          </div>
+        </div>
+        <div className="p-6 overflow-y-auto max-h-[60vh]">
+          {cards.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">Nenhum cartão próximo ao vencimento</p>
+          ) : (
+            <div className="grid gap-4">
+              {cards.map((card) => {
+                const validUntil = new Date(card.validUntil)
+                const now = new Date()
+                const daysUntilExpiry = Math.ceil((validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                const isExpired = daysUntilExpiry < 0
+
+                return (
+                  <div
+                    key={card.id}
+                    className={`p-4 rounded-lg border ${isExpired ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{card.warName}</h3>
+                            <p className="text-sm text-gray-600">
+                              {card.rank} - {card.name}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{card.licensePlate}</p>
+                            <p className="text-xs text-gray-600">
+                              {card.vehicleModel} - {card.vehicleColor}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">Válido até: {validUntil.toLocaleDateString("pt-BR")}</p>
+                        <Badge
+                          variant="secondary"
+                          className={isExpired ? "bg-red-200 text-red-900" : "bg-orange-200 text-orange-900"}
+                        >
+                          {isExpired
+                            ? `Vencido há ${Math.abs(daysUntilExpiry)} dias`
+                            : `${daysUntilExpiry} dias restantes`}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function Dashboard() {
+  const [showExpiringCards, setShowExpiringCards] = useState(false)
+
   const stats = useMemo(() => {
     const cards = ParkingStorage.getAll()
 
@@ -26,16 +102,20 @@ export function Dashboard() {
     // Cartões próximos ao vencimento (próximos 30 dias)
     const now = new Date()
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
-    const expiringSoon = cards.filter((card) => {
+    const expiringSoonCards = cards.filter((card) => {
       const validUntil = new Date(card.validUntil)
       return validUntil <= thirtyDaysFromNow && validUntil >= now
-    }).length
+    })
 
     // Cartões vencidos
-    const expired = cards.filter((card) => {
+    const expiredCards = cards.filter((card) => {
       const validUntil = new Date(card.validUntil)
       return validUntil < now
-    }).length
+    })
+
+    const allExpiringCards = [...expiringSoonCards, ...expiredCards].sort((a, b) => {
+      return new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime()
+    })
 
     return {
       total,
@@ -45,8 +125,9 @@ export function Dashboard() {
       motorcycles,
       provisional,
       definitive,
-      expiringSoon,
-      expired,
+      expiringSoon: expiringSoonCards.length,
+      expired: expiredCards.length,
+      allExpiringCards, // Adicionado array com todos os cartões para o modal
     }
   }, [])
 
@@ -100,6 +181,17 @@ export function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold text-orange-900">{stats.expiringSoon}</div>
             <p className="text-xs text-orange-600 mt-1">Próximos 30 dias</p>
+            {(stats.expiringSoon > 0 || stats.expired > 0) && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full text-orange-700 border-orange-300 hover:bg-orange-50 bg-transparent"
+                onClick={() => setShowExpiringCards(true)}
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                Visualizar
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -163,9 +255,20 @@ export function Dashboard() {
       {(stats.expiringSoon > 0 || stats.expired > 0) && (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardHeader>
-            <CardTitle className="text-lg text-yellow-900 flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2" />
-              Alertas de Vencimento
+            <CardTitle className="text-lg text-yellow-900 flex items-center justify-between">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                Alertas de Vencimento
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100 bg-transparent"
+                onClick={() => setShowExpiringCards(true)}
+              >
+                <Eye className="h-4 w-4 mr-1" />
+                Ver Detalhes
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -188,6 +291,12 @@ export function Dashboard() {
           </CardContent>
         </Card>
       )}
+
+      <ExpiringCardsModal
+        isOpen={showExpiringCards}
+        onClose={() => setShowExpiringCards(false)}
+        cards={stats.allExpiringCards}
+      />
     </div>
   )
 }
