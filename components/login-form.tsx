@@ -47,6 +47,9 @@ export function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <img src="/images/2bec-logo.jpg" alt="Logo do 2º BEC" className="h-20 w-auto object-contain" />
+          </div>
           <CardTitle className="text-2xl font-bold text-blue-900">Sistema de Estacionamento</CardTitle>
           <CardDescription className="text-blue-700">2º Batalhão de Engenharia de Construção</CardDescription>
         </CardHeader>

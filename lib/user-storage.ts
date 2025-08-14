@@ -86,7 +86,7 @@ export const userStorage = {
       const adminUser: UserFormData = {
         username: "admin",
         email: "admin@2bec.mil.br",
-        password: "admin123",
+        password: "123456",
         role: "admin",
         fullName: "Administrador do Sistema",
       }
@@ -94,7 +94,7 @@ export const userStorage = {
       const commonUser: UserFormData = {
         username: "usuario",
         email: "usuario@2bec.mil.br",
-        password: "user123",
+        password: "123456",
         role: "user",
         fullName: "Usuário Comum",
       }

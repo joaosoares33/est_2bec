@@ -24,13 +24,13 @@ INSERT INTO vehicle_types (type_name) VALUES
 ('Carro'),
 ('Moto');
 
--- Adicionando usuários padrão com novos campos
--- Usuário administrador padrão (senha: admin123 - ALTERAR EM PRODUÇÃO)
+-- Adicionando usuários padrão com senhas alteradas
+-- Alterando senhas para 123456 para facilitar o login
 INSERT INTO users (id, username, email, password, full_name, role, status) VALUES
-(UUID(), 'admin', 'admin@2bec.mil.br', 'admin123', 'Administrador do Sistema', 'admin', 'active'),
-(UUID(), 'usuario', 'usuario@2bec.mil.br', 'user123', 'Usuário Comum', 'user', 'active');
+(UUID(), 'admin', 'admin@2bec.mil.br', '123456', 'Administrador do Sistema', 'admin', 'active'),
+(UUID(), 'usuario', 'usuario@2bec.mil.br', '123456', 'Usuário Comum', 'user', 'active');
 
 -- Dados de exemplo para demonstração (opcional)
 INSERT INTO users (id, username, email, password, full_name, role, status) VALUES
-(UUID(), 'operador1', 'operador1@2bec.mil.br', 'op123', 'João Silva Santos', 'user', 'active'),
-(UUID(), 'operador2', 'operador2@2bec.mil.br', 'op123', 'Maria Oliveira Costa', 'user', 'active');
+(UUID(), 'operador1', 'operador1@2bec.mil.br', '123456', 'João Silva Santos', 'user', 'active'),
+(UUID(), 'operador2', 'operador2@2bec.mil.br', '123456', 'Maria Oliveira Costa', 'user', 'active');
