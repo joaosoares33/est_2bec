@@ -61,7 +61,7 @@ export default function HomePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button onClick={() => setViewMode("form")} className="bg-blue-600 hover:bg-blue-700" size="lg">
+                    <Button onClick={() => setViewMode("form")} className="btn-gradient-primary" size="lg">
                       <Plus className="mr-2 h-5 w-5" />
                       Cadastrar Novo Cartão
                     </Button>

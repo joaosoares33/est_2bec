@@ -58,7 +58,11 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
                   variant={currentView === item.id ? "default" : "ghost"}
                   size="sm"
                   onClick={() => handleMenuClick(item.id)}
-                  className={currentView === item.id ? "bg-blue-600 hover:bg-blue-700" : ""}
+                  className={
+                    currentView === item.id
+                      ? "btn-gradient-primary"
+                      : "hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white transition-all duration-300"
+                  }
                 >
                   <item.icon className="w-4 h-4 mr-2" />
                   {item.label}
@@ -114,7 +118,11 @@ export function Navigation({ currentView, onViewChange }: NavigationProps) {
                   <Button
                     key={item.id}
                     variant={currentView === item.id ? "default" : "ghost"}
-                    className={`w-full justify-start ${currentView === item.id ? "bg-blue-600 hover:bg-blue-700" : ""}`}
+                    className={`w-full justify-start ${
+                      currentView === item.id
+                        ? "btn-gradient-primary"
+                        : "hover:bg-gradient-to-r hover:from-blue-500 hover:to-blue-600 hover:text-white transition-all duration-300"
+                    }`}
                     onClick={() => handleMenuClick(item.id)}
                   >
                     <item.icon className="w-4 h-4 mr-3" />

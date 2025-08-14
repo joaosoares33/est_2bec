@@ -363,12 +363,17 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
 
           {/* Botões de Ação */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button type="submit" disabled={isSubmitting} className="flex-1 bg-primary hover:bg-primary/90">
+            <Button type="submit" disabled={isSubmitting} className="flex-1 btn-gradient-primary">
               {isSubmitting ? "Salvando..." : card ? "Atualizar Cartão" : "Cadastrar Cartão"}
             </Button>
 
             {onCancel && (
-              <Button type="button" variant="outline" onClick={handleCancel} className="flex-1 bg-transparent">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="flex-1 bg-transparent hover:bg-gray-50"
+              >
                 Cancelar
               </Button>
             )}

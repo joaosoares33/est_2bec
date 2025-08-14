@@ -11,15 +11,15 @@ function ExpiringCardsModal({ isOpen, onClose, cards }: { isOpen: boolean; onClo
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
-        <div className="p-6 border-b">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden card-enhanced animate-scale-in">
+        <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-blue-100">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-blue-900 flex items-center">
               <AlertTriangle className="h-5 w-5 mr-2 text-orange-600" />
               Cartões Próximos ao Vencimento
             </h2>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} className="hover:bg-blue-50 bg-transparent">
               Fechar
             </Button>
           </div>
@@ -38,7 +38,7 @@ function ExpiringCardsModal({ isOpen, onClose, cards }: { isOpen: boolean; onClo
                 return (
                   <div
                     key={card.id}
-                    className={`p-4 rounded-lg border ${isExpired ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}
+                    className={`p-4 rounded-lg border card-enhanced ${isExpired ? "bg-red-50 border-red-200" : "bg-orange-50 border-orange-200"}`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -127,65 +127,66 @@ export function Dashboard() {
       definitive,
       expiringSoon: expiringSoonCards.length,
       expired: expiredCards.length,
-      allExpiringCards, // Adicionado array com todos os cartões para o modal
+      allExpiringCards,
     }
   }, [])
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-blue-900 mb-2">Dashboard - Sistema de Estacionamento</h1>
-        <p className="text-blue-700">2º Batalhão de Engenharia de Construção</p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="text-center mb-8 p-6 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 card-enhanced">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-800 to-blue-600 bg-clip-text text-transparent mb-2">
+          Dashboard - Sistema de Estacionamento
+        </h1>
+        <p className="text-blue-700 font-medium">2º Batalhão de Engenharia de Construção</p>
       </div>
 
-      {/* Estatísticas Principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-blue-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-blue-200 card-enhanced animate-slide-up">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
             <CardTitle className="text-sm font-medium text-blue-700">Total de Cartões</CardTitle>
             <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold text-blue-900">{stats.total}</div>
             <p className="text-xs text-blue-600 mt-1">Cartões cadastrados</p>
           </CardContent>
         </Card>
 
-        <Card className="border-green-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-green-200 card-enhanced animate-slide-up" style={{ animationDelay: "0.1s" }}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-green-50 to-green-100 rounded-t-lg">
             <CardTitle className="text-sm font-medium text-green-700">Cartões Ativos</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold text-green-900">{stats.active}</div>
             <p className="text-xs text-green-600 mt-1">Em uso atualmente</p>
           </CardContent>
         </Card>
 
-        <Card className="border-red-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-red-200 card-enhanced animate-slide-up" style={{ animationDelay: "0.2s" }}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-red-50 to-red-100 rounded-t-lg">
             <CardTitle className="text-sm font-medium text-red-700">Cartões Inativos</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold text-red-900">{stats.inactive}</div>
             <p className="text-xs text-red-600 mt-1">Desativados</p>
           </CardContent>
         </Card>
 
-        <Card className="border-orange-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card className="border-orange-200 card-enhanced animate-slide-up" style={{ animationDelay: "0.3s" }}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 bg-gradient-to-r from-orange-50 to-orange-100 rounded-t-lg">
             <CardTitle className="text-sm font-medium text-orange-700">Próximos ao Vencimento</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="text-2xl font-bold text-orange-900">{stats.expiringSoon}</div>
             <p className="text-xs text-orange-600 mt-1">Próximos 30 dias</p>
             {(stats.expiringSoon > 0 || stats.expired > 0) && (
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2 w-full text-orange-700 border-orange-300 hover:bg-orange-50 bg-transparent"
+                className="mt-2 w-full btn-gradient-secondary text-xs bg-transparent"
                 onClick={() => setShowExpiringCards(true)}
               >
                 <Eye className="h-3 w-3 mr-1" />
@@ -196,54 +197,53 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Estatísticas por Categoria */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border-blue-200">
-          <CardHeader>
+        <Card className="border-blue-200 card-enhanced animate-slide-up" style={{ animationDelay: "0.4s" }}>
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
             <CardTitle className="text-lg text-blue-900">Tipos de Veículos</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
               <div className="flex items-center space-x-2">
                 <Car className="h-5 w-5 text-blue-600" />
-                <span className="text-blue-800">Carros</span>
+                <span className="text-blue-800 font-medium">Carros</span>
               </div>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <Badge variant="secondary" className="bg-blue-200 text-blue-800 font-semibold">
                 {stats.cars}
               </Badge>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
               <div className="flex items-center space-x-2">
                 <Bike className="h-5 w-5 text-blue-600" />
-                <span className="text-blue-800">Motos</span>
+                <span className="text-blue-800 font-medium">Motos</span>
               </div>
-              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <Badge variant="secondary" className="bg-blue-200 text-blue-800 font-semibold">
                 {stats.motorcycles}
               </Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-blue-200">
-          <CardHeader>
+        <Card className="border-blue-200 card-enhanced animate-slide-up" style={{ animationDelay: "0.5s" }}>
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-t-lg">
             <CardTitle className="text-lg text-blue-900">Tipos de Emissão</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="space-y-4 pt-6">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors">
               <div className="flex items-center space-x-2">
                 <Clock className="h-5 w-5 text-orange-600" />
-                <span className="text-blue-800">Provisórios</span>
+                <span className="text-blue-800 font-medium">Provisórios</span>
               </div>
-              <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+              <Badge variant="secondary" className="bg-orange-200 text-orange-800 font-semibold">
                 {stats.provisional}
               </Badge>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
               <div className="flex items-center space-x-2">
                 <Calendar className="h-5 w-5 text-green-600" />
-                <span className="text-blue-800">Definitivos</span>
+                <span className="text-blue-800 font-medium">Definitivos</span>
               </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Badge variant="secondary" className="bg-green-200 text-green-800 font-semibold">
                 {stats.definitive}
               </Badge>
             </div>
@@ -251,9 +251,11 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Alertas */}
       {(stats.expiringSoon > 0 || stats.expired > 0) && (
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card
+          className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 card-enhanced animate-slide-up"
+          style={{ animationDelay: "0.6s" }}
+        >
           <CardHeader>
             <CardTitle className="text-lg text-yellow-900 flex items-center justify-between">
               <div className="flex items-center">
@@ -263,7 +265,7 @@ export function Dashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100 bg-transparent"
+                className="btn-gradient-secondary bg-transparent"
                 onClick={() => setShowExpiringCards(true)}
               >
                 <Eye className="h-4 w-4 mr-1" />
@@ -273,17 +275,17 @@ export function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {stats.expiringSoon > 0 && (
-              <div className="flex items-center justify-between p-2 bg-orange-100 rounded">
-                <span className="text-orange-800">Cartões vencendo em 30 dias</span>
-                <Badge variant="secondary" className="bg-orange-200 text-orange-900">
+              <div className="flex items-center justify-between p-3 bg-orange-100 rounded-lg card-enhanced">
+                <span className="text-orange-800 font-medium">Cartões vencendo em 30 dias</span>
+                <Badge variant="secondary" className="bg-orange-200 text-orange-900 font-semibold">
                   {stats.expiringSoon}
                 </Badge>
               </div>
             )}
             {stats.expired > 0 && (
-              <div className="flex items-center justify-between p-2 bg-red-100 rounded">
-                <span className="text-red-800">Cartões vencidos</span>
-                <Badge variant="secondary" className="bg-red-200 text-red-900">
+              <div className="flex items-center justify-between p-3 bg-red-100 rounded-lg card-enhanced">
+                <span className="text-red-800 font-medium">Cartões vencidos</span>
+                <Badge variant="secondary" className="bg-red-200 text-red-900 font-semibold">
                   {stats.expired}
                 </Badge>
               </div>

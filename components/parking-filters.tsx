@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, Filter, X, BarChart3 } from "lucide-react"
-import { MILITARY_RANKS, VEHICLE_COLORS } from "@/lib/constants"
+import { MILITARY_RANKS } from "@/lib/constants"
 import type { ParkingCard } from "@/lib/types"
 
 export interface FilterOptions {
   search: string
   status: "all" | "active" | "inactive"
   rank: string
-  vehicleColor: string
+  vehicleType: string // substituído vehicleColor por vehicleType
   sortBy: "name" | "date" | "rank" | "plate"
   sortOrder: "asc" | "desc"
 }
@@ -38,7 +38,7 @@ export function ParkingFilters({ cards, filters, onFiltersChange, onClearFilters
     filters.search !== "" ||
     filters.status !== "all" ||
     filters.rank !== "" ||
-    filters.vehicleColor !== "" ||
+    filters.vehicleType !== "" || // atualizado para vehicleType
     filters.sortBy !== "name" ||
     filters.sortOrder !== "asc"
 
@@ -216,18 +216,18 @@ export function ParkingFilters({ cards, filters, onFiltersChange, onClearFilters
               </div>
 
               <div className="space-y-2">
-                <Label>Cor do Veículo</Label>
-                <Select value={filters.vehicleColor} onValueChange={(value) => updateFilter("vehicleColor", value)}>
+                <Label>Tipo de Veículo</Label> {/* alterado de "Cor do Veículo" para "Tipo de Veículo" */}
+                <Select value={filters.vehicleType} onValueChange={(value) => updateFilter("vehicleType", value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todas as cores" />
+                    <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as cores</SelectItem>
-                    {VEHICLE_COLORS.map((color) => (
-                      <SelectItem key={color} value={color}>
-                        {color}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">Todos os tipos</SelectItem>
+                    <SelectItem value="Carro">Carro</SelectItem> {/* substituído cores por tipos de veículo */}
+                    <SelectItem value="Moto">Moto</SelectItem>
+                    <SelectItem value="Caminhonete">Caminhonete</SelectItem>
+                    <SelectItem value="Van">Van</SelectItem>
+                    <SelectItem value="Ônibus">Ônibus</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
