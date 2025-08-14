@@ -143,7 +143,7 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
   const handleDelete = (id: string, militaryName: string) => {
     setConfirmation({
       open: true,
-      title: "Confirmar Exclusão",
+      title: "⚠️ Confirmar Exclusão",
       description: `Tem certeza que deseja excluir o cartão de ${militaryName}? Esta ação não pode ser desfeita.`,
       variant: "destructive",
       onConfirm: () => {
@@ -151,14 +151,14 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
         const success = ParkingStorage.delete(id)
         if (success) {
           toast({
-            title: "Sucesso",
-            description: "Cartão excluído com sucesso",
+            title: "✅ Cartão Excluído",
+            description: `Cartão de ${militaryName} foi excluído com sucesso`,
           })
           loadCards() // Recarregar lista após exclusão
         } else {
           toast({
-            title: "Erro",
-            description: "Erro ao excluir cartão",
+            title: "❌ Erro na Exclusão",
+            description: "Não foi possível excluir o cartão",
             variant: "destructive",
           })
         }
@@ -199,8 +199,8 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
 
     setConfirmation({
       open: true,
-      title: `Confirmar ${statusText.charAt(0).toUpperCase() + statusText.slice(1)} em Lote`,
-      description: `Tem certeza que deseja ${statusText} ${selectedCount} cartão${selectedCount > 1 ? "s" : ""}?`,
+      title: `⚠️ Confirmar ${statusText.charAt(0).toUpperCase() + statusText.slice(1)} em Lote`,
+      description: `Tem certeza que deseja ${statusText} ${selectedCount} cartão${selectedCount > 1 ? "s" : ""}? Esta operação pode ser revertida a qualquer momento.`,
       onConfirm: () => {
         let successCount = 0
         selectedCards.forEach((id) => {
@@ -213,7 +213,7 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
         })
 
         toast({
-          title: "Sucesso",
+          title: "🎯 Operação realizada com sucesso!",
           description: `${successCount} cartão${successCount > 1 ? "s" : ""} ${newStatus === "active" ? "ativado" : "desativado"}${successCount > 1 ? "s" : ""} com sucesso`,
         })
 
@@ -227,18 +227,20 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
     const card = cards.find((c) => c.id === id)
     if (!card) return
 
-    const newStatus = card.status === "active" ? "desativado" : "ativado"
+    const actionText = card.status === "active" ? "desativar" : "ativar"
+    const statusText = card.status === "active" ? "desativado" : "ativado"
+
     setConfirmation({
       open: true,
-      title: `Confirmar ${card.status === "active" ? "Desativação" : "Ativação"}`,
-      description: `Tem certeza que deseja ${card.status === "active" ? "desativar" : "ativar"} o cartão de ${card.militaryName}?`,
+      title: `⚠️ Confirmar ${card.status === "active" ? "Desativação" : "Ativação"}`,
+      description: `Tem certeza que deseja ${actionText} o cartão de ${card.warName}? Esta operação pode ser revertida a qualquer momento.`,
       onConfirm: () => {
         console.log("Alterando status do cartão ID:", id)
         const updatedCard = ParkingStorage.toggleStatus(id)
         if (updatedCard) {
           toast({
-            title: "Sucesso",
-            description: `Cartão ${newStatus} com sucesso`,
+            title: `🎯 Operação realizada com sucesso!`,
+            description: `Cartão de ${card.warName} foi ${statusText} com sucesso`,
           })
           loadCards() // Recarregar lista após alteração de status
         }

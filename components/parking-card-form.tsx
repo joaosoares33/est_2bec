@@ -37,7 +37,7 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
     // Remove todos os caracteres que não são letras ou números
     const cleanValue = value.replace(/[^A-Z0-9]/g, "")
 
-    // Aplica a máscara XXX-XXXX
+    // Aplica a máscara XXX-XXXX (aceita formato Mercosul)
     if (cleanValue.length <= 3) {
       return cleanValue
     } else if (cleanValue.length <= 7) {
@@ -64,6 +64,24 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
 
       const validationErrors = []
 
+      const allFieldsEmpty =
+        !formData.militaryName?.trim() &&
+        !formData.rank?.trim() &&
+        !formData.warName?.trim() &&
+        !formData.vehiclePlate?.trim() &&
+        !formData.vehicleColor?.trim() &&
+        !formData.vehicleModel?.trim() &&
+        !formData.vehicleType?.trim()
+
+      if (allFieldsEmpty) {
+        toast({
+          title: "⚠️ Campos Obrigatórios",
+          description: "Os campos com asterisco (*) são obrigatórios. Por favor, preencha todos os campos necessários.",
+          variant: "destructive",
+        })
+        return
+      }
+
       if (!formData.militaryName?.trim()) {
         validationErrors.push("Nome do militar é obrigatório")
       }
@@ -79,9 +97,11 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
       if (!formData.vehiclePlate?.trim()) {
         validationErrors.push("Placa do veículo é obrigatória")
       } else {
-        const plateRegex = /^[A-Z]{3}-[0-9]{4}$/
-        if (!plateRegex.test(formData.vehiclePlate)) {
-          validationErrors.push("Formato de placa inválido (ex: ABC-1234)")
+        const plateRegexOld = /^[A-Z]{3}-[0-9]{4}$/
+        const plateRegexMercosul = /^[A-Z]{3}-[0-9][A-Z0-9][0-9]{2}$/
+
+        if (!plateRegexOld.test(formData.vehiclePlate) && !plateRegexMercosul.test(formData.vehiclePlate)) {
+          validationErrors.push("Formato de placa inválido (ex: ABC-1234 ou ABC-1D23)")
         }
       }
 
@@ -101,43 +121,53 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
         validationErrors.push("Tipo de emissão é obrigatório")
       }
 
+      console.log("Erros de validação encontrados:", validationErrors.length)
+
       if (validationErrors.length > 0) {
-        console.log("Erros de validação:", validationErrors)
+        console.log("ERRO: Validação falhou:", validationErrors)
         toast({
-          title: "Erro de Validação",
-          description: validationErrors.join(", "),
+          title: "⚠️ Campos Obrigatórios",
+          description: `Por favor, preencha: ${validationErrors.join(", ")}`,
           variant: "destructive",
         })
         return
       }
 
-      console.log("Validação passou, salvando...")
+      console.log("✅ Validação passou, salvando...")
 
       let result
-      if (card) {
-        console.log("Atualizando cartão ID:", card.id)
-        result = ParkingStorage.update(card.id, formData)
-        if (!result) {
-          throw new Error("Cartão não encontrado para atualização")
+      try {
+        if (card) {
+          console.log("Atualizando cartão ID:", card.id)
+          result = ParkingStorage.update(card.id, formData)
+          if (!result) {
+            throw new Error("Cartão não encontrado para atualização")
+          }
+          console.log("✅ Cartão atualizado:", result)
+          toast({
+            title: "🚗 Veículo atualizado com sucesso!",
+            description: `Cartão de ${formData.warName} foi atualizado com sucesso`,
+          })
+        } else {
+          console.log("Criando novo cartão...")
+          result = ParkingStorage.create(formData)
+          console.log("✅ Cartão criado:", result)
+          toast({
+            title: "✅ Inclusão de cartão com sucesso!",
+            description: `Cartão de estacionamento para ${formData.warName} foi incluído no sistema`,
+          })
         }
-        console.log("Cartão atualizado:", result)
-        toast({
-          title: "Sucesso",
-          description: "Cartão atualizado com sucesso",
-        })
-      } else {
-        console.log("Criando novo cartão...")
-        result = ParkingStorage.create(formData)
-        console.log("Cartão criado:", result)
-        toast({
-          title: "Sucesso",
-          description: "Cartão cadastrado com sucesso",
-        })
+      } catch (storageError) {
+        console.error("ERRO no storage:", storageError)
+        throw storageError
       }
 
       const allCards = ParkingStorage.getAll()
       console.log("Total de cartões após salvamento:", allCards.length)
-      console.log("Último cartão salvo:", allCards[allCards.length - 1])
+
+      if (allCards.length > 0) {
+        console.log("Último cartão salvo:", allCards[allCards.length - 1])
+      }
 
       if (!card) {
         console.log("Resetando formulário...")
@@ -154,22 +184,41 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
       }
 
       console.log("Chamando onSuccess callback...")
-      onSuccess?.()
-      console.log("=== FIM DO SUBMIT ===")
+      if (onSuccess) {
+        onSuccess()
+        console.log("✅ Callback onSuccess executado")
+      } else {
+        console.log("⚠️ Nenhum callback onSuccess fornecido")
+      }
+
+      console.log("=== FIM DO SUBMIT COM SUCESSO ===")
     } catch (error) {
-      console.error("=== ERRO NO SUBMIT ===", error)
+      console.error("=== ERRO CRÍTICO NO SUBMIT ===", error)
+      console.error("Stack trace:", error instanceof Error ? error.stack : "N/A")
       toast({
-        title: "Erro",
-        description: `Ocorreu um erro ao salvar o cartão: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
+        title: "❌ Erro ao Salvar",
+        description: `Erro ao salvar cartão: ${error instanceof Error ? error.message : "Erro desconhecido"}`,
         variant: "destructive",
       })
     } finally {
+      console.log("Finalizando submit, setIsSubmitting(false)")
       setIsSubmitting(false)
     }
   }
 
   const handleInputChange = (field: keyof ParkingCardFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleCancel = () => {
+    if (onCancel) {
+      toast({
+        title: "❌ Operação Cancelada",
+        description: "Cadastro/edição do cartão foi cancelado",
+        variant: "default",
+      })
+      onCancel()
+    }
   }
 
   return (
@@ -319,7 +368,7 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
             </Button>
 
             {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1 bg-transparent">
+              <Button type="button" variant="outline" onClick={handleCancel} className="flex-1 bg-transparent">
                 Cancelar
               </Button>
             )}

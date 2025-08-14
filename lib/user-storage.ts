@@ -72,35 +72,48 @@ export const userStorage = {
 
   // Autenticar usuário
   authenticate: (username: string, password: string): User | null => {
-    const user = userStorage.findByUsername(username)
+    console.log("Tentativa de login:", { username, password })
+    const users = userStorage.getAll()
+    console.log(
+      "Usuários disponíveis:",
+      users.map((u) => ({ username: u.username, password: u.password, status: u.status })),
+    )
+
+    const user = users.find((user) => user.username === username)
+    console.log("Usuário encontrado:", user)
+
     if (user && user.password === password && user.status === "active") {
+      console.log("Login bem-sucedido")
       return user
     }
+    console.log("Login falhou")
     return null
   },
 
   // Inicializar com usuário admin padrão
   initializeDefaultUsers: () => {
-    const users = userStorage.getAll()
-    if (users.length === 0) {
-      const adminUser: UserFormData = {
-        username: "admin",
-        email: "admin@2bec.mil.br",
-        password: "123456",
-        role: "admin",
-        fullName: "Administrador do Sistema",
-      }
+    // Limpar usuários existentes para garantir credenciais corretas
+    localStorage.removeItem(STORAGE_KEY)
 
-      const commonUser: UserFormData = {
-        username: "usuario",
-        email: "usuario@2bec.mil.br",
-        password: "123456",
-        role: "user",
-        fullName: "Usuário Comum",
-      }
-
-      userStorage.create(adminUser)
-      userStorage.create(commonUser)
+    const adminUser: UserFormData = {
+      username: "admin",
+      email: "admin@2bec.mil.br",
+      password: "123",
+      role: "admin",
+      fullName: "Administrador do Sistema",
     }
+
+    const commonUser: UserFormData = {
+      username: "user",
+      email: "user@2bec.mil.br",
+      password: "123",
+      role: "user",
+      fullName: "Usuário Comum",
+    }
+
+    userStorage.create(adminUser)
+    userStorage.create(commonUser)
+
+    console.log("Usuários padrão criados:", userStorage.getAll())
   },
 }
