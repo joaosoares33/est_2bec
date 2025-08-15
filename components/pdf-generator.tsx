@@ -146,7 +146,25 @@ export class PDFGenerator {
           canvas.width = width * 10
           canvas.height = height * 10
 
+          ctx.clearRect(0, 0, canvas.width, canvas.height)
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const data = imageData.data
+
+          // Remover fundo branco/claro (tolerância para variações)
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i]
+            const g = data[i + 1]
+            const b = data[i + 2]
+
+            // Se a cor for muito clara (próxima do branco), tornar transparente
+            if (r > 240 && g > 240 && b > 240) {
+              data[i + 3] = 0 // Alpha = 0 (transparente)
+            }
+          }
+
+          ctx.putImageData(imageData, 0, 0)
           const dataUrl = canvas.toDataURL("image/png")
 
           pdf.addImage(dataUrl, "PNG", x, y, width, height)
@@ -162,7 +180,7 @@ export class PDFGenerator {
         reject(new Error("Failed to load PNG logo"))
       }
 
-      img.src = "/images/2bec-logo-final.png"
+      img.src = "/images/2bec-logo-new.png"
     })
   }
 
