@@ -42,7 +42,7 @@ const defaultFilters: FilterOptions = {
   search: "",
   status: "all",
   rank: "",
-  vehicleColor: "",
+  vehicleType: "", // corrigido de vehicleColor para vehicleType
   sortBy: "name",
   sortOrder: "asc",
 }
@@ -126,9 +126,19 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
       filtered = filtered.filter((card) => card.rank === filters.rank)
     }
 
-    // Aplicar filtro de cor
-    if (filters.vehicleColor) {
-      filtered = filtered.filter((card) => card.vehicleColor === filters.vehicleColor)
+    if (filters.vehicleType && filters.vehicleType !== "all") {
+      console.log("Aplicando filtro de tipo:", filters.vehicleType)
+      console.log(
+        "Cartões antes do filtro:",
+        filtered.map((card) => ({ id: card.id, type: card.vehicleType })),
+      )
+      filtered = filtered.filter(
+        (card) => card.vehicleType && card.vehicleType.toLowerCase() === filters.vehicleType.toLowerCase(),
+      )
+      console.log(
+        "Cartões após filtro de tipo:",
+        filtered.map((card) => ({ id: card.id, type: card.vehicleType })),
+      )
     }
 
     // Aplicar ordenação
@@ -557,10 +567,10 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                           {card.vehiclePlate}
                         </p>
                       </div>
-                      {card.vehicleColor && (
+                      {card.vehicleType && (
                         <div className="min-w-0 p-2 bg-gray-50 rounded">
-                          <span className="font-medium text-muted-foreground block">Cor:</span>
-                          <p className="text-foreground text-xs sm:text-sm truncate">{card.vehicleColor}</p>
+                          <span className="font-medium text-muted-foreground block">Tipo:</span>
+                          <p className="text-foreground text-xs sm:text-sm truncate">{card.vehicleType}</p>
                         </div>
                       )}
                     </div>

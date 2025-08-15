@@ -34,11 +34,13 @@ export function ParkingFilters({ cards, filters, onFiltersChange, onClearFilters
     onFiltersChange({ ...filters, [key]: value })
   }
 
+  const uniqueVehicleTypes = Array.from(new Set(cards.map((card) => card.vehicleType).filter(Boolean))).sort()
+
   const hasActiveFilters =
     filters.search !== "" ||
     filters.status !== "all" ||
     filters.rank !== "" ||
-    filters.vehicleType !== "" || // atualizado para vehicleType
+    filters.vehicleType !== "" ||
     filters.sortBy !== "name" ||
     filters.sortOrder !== "asc"
 
@@ -216,18 +218,18 @@ export function ParkingFilters({ cards, filters, onFiltersChange, onClearFilters
               </div>
 
               <div className="space-y-2">
-                <Label>Tipo de Veículo</Label> {/* alterado de "Cor do Veículo" para "Tipo de Veículo" */}
+                <Label>Tipo de Veículo</Label>
                 <Select value={filters.vehicleType} onValueChange={(value) => updateFilter("vehicleType", value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os tipos</SelectItem>
-                    <SelectItem value="Carro">Carro</SelectItem> {/* substituído cores por tipos de veículo */}
-                    <SelectItem value="Moto">Moto</SelectItem>
-                    <SelectItem value="Caminhonete">Caminhonete</SelectItem>
-                    <SelectItem value="Van">Van</SelectItem>
-                    <SelectItem value="Ônibus">Ônibus</SelectItem>
+                    {uniqueVehicleTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

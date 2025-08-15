@@ -182,17 +182,15 @@ export function Dashboard() {
           <CardContent className="pt-4">
             <div className="text-2xl font-bold text-orange-900">{stats.expiringSoon}</div>
             <p className="text-xs text-orange-600 mt-1">Próximos 30 dias</p>
-            {(stats.expiringSoon > 0 || stats.expired > 0) && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-2 w-full btn-gradient-secondary text-xs bg-transparent"
-                onClick={() => setShowExpiringCards(true)}
-              >
-                <Eye className="h-3 w-3 mr-1" />
-                Visualizar
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2 w-full btn-gradient-secondary text-xs bg-transparent hover:bg-gradient-to-r hover:from-orange-500 hover:to-orange-600 hover:text-white transition-all duration-300"
+              onClick={() => setShowExpiringCards(true)}
+            >
+              <Eye className="h-3 w-3 mr-1" />
+              Visualizar
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -251,48 +249,51 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {(stats.expiringSoon > 0 || stats.expired > 0) && (
-        <Card
-          className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 card-enhanced animate-slide-up"
-          style={{ animationDelay: "0.6s" }}
-        >
-          <CardHeader>
-            <CardTitle className="text-lg text-yellow-900 flex items-center justify-between">
-              <div className="flex items-center">
-                <AlertTriangle className="h-5 w-5 mr-2" />
-                Alertas de Vencimento
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="btn-gradient-secondary bg-transparent"
-                onClick={() => setShowExpiringCards(true)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                Ver Detalhes
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {stats.expiringSoon > 0 && (
-              <div className="flex items-center justify-between p-3 bg-orange-100 rounded-lg card-enhanced">
-                <span className="text-orange-800 font-medium">Cartões vencendo em 30 dias</span>
-                <Badge variant="secondary" className="bg-orange-200 text-orange-900 font-semibold">
-                  {stats.expiringSoon}
-                </Badge>
-              </div>
-            )}
-            {stats.expired > 0 && (
-              <div className="flex items-center justify-between p-3 bg-red-100 rounded-lg card-enhanced">
-                <span className="text-red-800 font-medium">Cartões vencidos</span>
-                <Badge variant="secondary" className="bg-red-200 text-red-900 font-semibold">
-                  {stats.expired}
-                </Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      <Card
+        className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-orange-50 card-enhanced animate-slide-up"
+        style={{ animationDelay: "0.6s" }}
+      >
+        <CardHeader>
+          <CardTitle className="text-lg text-yellow-900 flex items-center justify-between">
+            <div className="flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Alertas de Vencimento
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="btn-gradient-secondary bg-transparent hover:bg-gradient-to-r hover:from-yellow-500 hover:to-orange-600 hover:text-white transition-all duration-300"
+              onClick={() => setShowExpiringCards(true)}
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Ver Detalhes
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {stats.expiringSoon > 0 && (
+            <div className="flex items-center justify-between p-3 bg-orange-100 rounded-lg card-enhanced">
+              <span className="text-orange-800 font-medium">Cartões vencendo em 30 dias</span>
+              <Badge variant="secondary" className="bg-orange-200 text-orange-900 font-semibold">
+                {stats.expiringSoon}
+              </Badge>
+            </div>
+          )}
+          {stats.expired > 0 && (
+            <div className="flex items-center justify-between p-3 bg-red-100 rounded-lg card-enhanced">
+              <span className="text-red-800 font-medium">Cartões vencidos</span>
+              <Badge variant="secondary" className="bg-red-200 text-red-900 font-semibold">
+                {stats.expired}
+              </Badge>
+            </div>
+          )}
+          {stats.expiringSoon === 0 && stats.expired === 0 && (
+            <div className="flex items-center justify-center p-6 bg-green-100 rounded-lg card-enhanced">
+              <span className="text-green-800 font-medium">✅ Nenhum cartão próximo ao vencimento</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <ExpiringCardsModal
         isOpen={showExpiringCards}
