@@ -3,8 +3,12 @@ import type { User, UserFormData } from "./types"
 const STORAGE_KEY = "parking_users_2bec"
 
 export const userStorage = {
+  isClient: () => typeof window !== "undefined" && typeof localStorage !== "undefined",
+
   // Obter todos os usuários
   getAll: (): User[] => {
+    if (!userStorage.isClient()) return []
+
     try {
       const data = localStorage.getItem(STORAGE_KEY)
       return data ? JSON.parse(data) : []
@@ -26,7 +30,13 @@ export const userStorage = {
     }
 
     users.push(newUser)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
+    if (userStorage.isClient()) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
+      } catch (error) {
+        console.error("Erro ao salvar usuário:", error)
+      }
+    }
     return newUser
   },
 
@@ -43,7 +53,13 @@ export const userStorage = {
       updatedAt: new Date().toISOString(),
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
+    if (userStorage.isClient()) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(users))
+      } catch (error) {
+        console.error("Erro ao atualizar usuário:", error)
+      }
+    }
     return users[index]
   },
 
@@ -54,7 +70,13 @@ export const userStorage = {
 
     if (filteredUsers.length === users.length) return false
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredUsers))
+    if (userStorage.isClient()) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredUsers))
+      } catch (error) {
+        console.error("Erro ao excluir usuário:", error)
+      }
+    }
     return true
   },
 
@@ -92,28 +114,42 @@ export const userStorage = {
 
   // Inicializar com usuário admin padrão
   initializeDefaultUsers: () => {
-    // Limpar usuários existentes para garantir credenciais corretas
-    localStorage.removeItem(STORAGE_KEY)
+    if (!userStorage.isClient()) return
 
-    const adminUser: UserFormData = {
-      username: "admin",
-      email: "admin@2bec.mil.br",
-      password: "123",
-      role: "admin",
-      fullName: "Administrador do Sistema",
+    try {
+      const existingUsers = userStorage.getAll()
+
+      // Sempre recriar usuários padrão para garantir consistência
+      const filteredUsers = existingUsers.filter((user) => user.username !== "admin" && user.username !== "user")
+
+      const adminUser: User = {
+        id: "admin-default",
+        username: "admin",
+        email: "admin@2bec.mil.br",
+        password: "123",
+        role: "admin",
+        fullName: "Administrador do Sistema",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: "active",
+      }
+
+      const commonUser: User = {
+        id: "user-default",
+        username: "user",
+        email: "user@2bec.mil.br",
+        password: "123",
+        role: "user",
+        fullName: "Usuário Comum",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: "active",
+      }
+
+      const allUsers = [...filteredUsers, adminUser, commonUser]
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allUsers))
+    } catch (error) {
+      console.error("Erro ao inicializar usuários:", error)
     }
-
-    const commonUser: UserFormData = {
-      username: "user",
-      email: "user@2bec.mil.br",
-      password: "123",
-      role: "user",
-      fullName: "Usuário Comum",
-    }
-
-    userStorage.create(adminUser)
-    userStorage.create(commonUser)
-
-    console.log("Usuários padrão criados:", userStorage.getAll())
   },
 }

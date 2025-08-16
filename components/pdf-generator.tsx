@@ -5,38 +5,202 @@ import type { ParkingCard } from "@/lib/types"
 import { ORGANIZATION_NAME } from "@/lib/constants"
 
 export class PDFGenerator {
-  static generateParkingCard(card: ParkingCard): void {
+  static async generateParkingCard(card: ParkingCard): Promise<void> {
+    try {
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: [85.6, 53.98], // Tamanho padrão de cartão de crédito
+      })
+
+      // Configurações de cores
+      const primaryBlue = [0, 51, 102] // Azul escuro
+      const white = [255, 255, 255]
+
+      // Background
+      pdf.setFillColor(...white)
+      pdf.rect(0, 0, 85.6, 53.98, "F")
+
+      // Header com fundo azul
+      pdf.setFillColor(...primaryBlue)
+      pdf.rect(0, 0, 85.6, 15, "F")
+
+      try {
+        await Promise.all([
+          this.addProcessedLogo(pdf, 2, 2, 11, 11), // Logo 2º BEC processada com remoção de fundo
+          this.addBrasaoNacional(pdf, 72, 2, 11, 11), // Brasão nacional direita
+        ])
+      } catch (error) {
+        console.warn("Erro ao carregar logos PNG, usando fallback vetorial:", error)
+        // Fallback para logos vetoriais se PNG falhar
+        this.drawVectorLogo(pdf, 2, 2, 11, 11)
+        this.drawBrasaoVetorial(pdf, 72, 2, 11, 11)
+      }
+
+      await this.finalizePDF(pdf, card)
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error)
+      this.generateBasicPDF(card)
+    }
+  }
+
+  private static generateBasicPDF(card: ParkingCard): void {
     const pdf = new jsPDF({
       orientation: "landscape",
       unit: "mm",
-      format: [85.6, 53.98], // Tamanho padrão de cartão de crédito
+      format: [85.6, 53.98],
     })
 
-    // Configurações de cores
-    const primaryBlue = [0, 51, 102] // Azul escuro
+    const primaryBlue = [0, 51, 102]
     const white = [255, 255, 255]
+    const black = [0, 0, 0]
 
     // Background
     pdf.setFillColor(...white)
     pdf.rect(0, 0, 85.6, 53.98, "F")
 
-    // Header com fundo azul
+    // Header
     pdf.setFillColor(...primaryBlue)
     pdf.rect(0, 0, 85.6, 15, "F")
 
-    Promise.all([
-      this.addPNGLogo(pdf, 2, 2, 11, 11), // Logo 2º BEC esquerda
-      this.addBrasaoNacional(pdf, 72, 2, 11, 11), // Brasão nacional direita
-    ])
-      .then(() => {
-        this.finalizePDF(pdf, card)
-      })
-      .catch(() => {
-        // Fallback para logos vetoriais se PNG falhar
-        this.drawVectorLogo(pdf, 2, 2, 11, 11)
-        this.drawBrasaoVetorial(pdf, 72, 2, 11, 11)
-        this.finalizePDF(pdf, card)
-      })
+    // Logos vetoriais como fallback
+    this.drawVectorLogo(pdf, 2, 2, 11, 11)
+    this.drawBrasaoVetorial(pdf, 72, 2, 11, 11)
+
+    // Texto do header
+    pdf.setTextColor(...white)
+    pdf.setFontSize(10)
+    pdf.setFont("helvetica", "bold")
+    pdf.text("CARTÃO DE ESTACIONAMENTO", 42.8, 6, { align: "center" })
+
+    pdf.setFontSize(8)
+    pdf.setFont("helvetica", "normal")
+    pdf.text(ORGANIZATION_NAME, 42.8, 11, { align: "center" })
+
+    // Campos do cartão
+    pdf.setTextColor(...black)
+    pdf.setFontSize(7)
+
+    const leftColumn = 5
+    let leftY = 22
+
+    pdf.setFont("helvetica", "bold")
+    pdf.text("NOME DE GUERRA:", leftColumn, leftY)
+    pdf.setFont("helvetica", "normal")
+    pdf.text(card.warName.toUpperCase(), leftColumn, leftY + 3)
+
+    leftY += 8
+    pdf.setFont("helvetica", "bold")
+    pdf.text("PLACA:", leftColumn, leftY)
+    pdf.setFont("helvetica", "normal")
+    pdf.text(card.vehiclePlate.toUpperCase(), leftColumn, leftY + 3)
+
+    // Borda
+    pdf.setDrawColor(...primaryBlue)
+    pdf.setLineWidth(0.5)
+    pdf.rect(1, 1, 83.6, 51.98, "S")
+
+    // Download
+    const fileName = `cartao_estacionamento_${card.warName.replace(/\s+/g, "_")}_${card.vehiclePlate}.pdf`
+    pdf.save(fileName)
+  }
+
+  private static async addProcessedLogo(
+    pdf: jsPDF,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+
+      img.onload = () => {
+        try {
+          if (typeof document === "undefined") {
+            reject(new Error("Document not available (SSR)"))
+            return
+          }
+
+          const canvas = document.createElement("canvas")
+          const ctx = canvas.getContext("2d")
+
+          if (!ctx) {
+            reject(new Error("Canvas context not available"))
+            return
+          }
+
+          // Configurar canvas com alta resolução
+          const scale = 4
+          canvas.width = width * scale * 10
+          canvas.height = height * scale * 10
+
+          // Desenhar imagem original
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+          // Obter dados da imagem
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+          const data = imageData.data
+
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i]
+            const g = data[i + 1]
+            const b = data[i + 2]
+
+            // Calcular posição do pixel
+            const pixelIndex = i / 4
+            const pixelX = pixelIndex % canvas.width
+            const pixelY = Math.floor(pixelIndex / canvas.width)
+
+            // Normalizar coordenadas (0-1)
+            const normalizedX = pixelX / canvas.width
+            const normalizedY = pixelY / canvas.height
+
+            // Área muito específica do texto "2º BEC" (apenas centro da faixa vermelha)
+            const isTextArea = normalizedY > 0.08 && normalizedY < 0.22 && normalizedX > 0.25 && normalizedX < 0.75
+
+            // Área muito específica dos símbolos do castelo (apenas centro da área azul)
+            const isCastleArea = normalizedY > 0.45 && normalizedY < 0.75 && normalizedX > 0.35 && normalizedX < 0.65
+
+            // Detectar apenas pixels realmente brancos (texto e símbolos)
+            const isReallyWhite = r > 245 && g > 245 && b > 245
+
+            // Preservar APENAS elementos brancos nas áreas muito específicas
+            const shouldPreserveWhite = isReallyWhite && (isTextArea || isCastleArea)
+
+            // Remover TODOS os pixels brancos exceto os específicos preservados
+            if (isReallyWhite && !shouldPreserveWhite) {
+              data[i + 3] = 0 // Alpha = 0 (transparente)
+            } else if (shouldPreserveWhite) {
+              // Garantir que elementos preservados sejam brancos puros
+              data[i] = 255 // R = 255
+              data[i + 1] = 255 // G = 255
+              data[i + 2] = 255 // B = 255
+              data[i + 3] = 255 // Alpha = 255 (opaco)
+            }
+          }
+
+          // Aplicar dados processados
+          ctx.putImageData(imageData, 0, 0)
+
+          // Converter para PNG com transparência
+          const dataUrl = canvas.toDataURL("image/png")
+          pdf.addImage(dataUrl, "PNG", x, y, width, height)
+          resolve()
+        } catch (error) {
+          console.error("Erro ao processar logo 2º BEC:", error)
+          reject(error)
+        }
+      }
+
+      img.onerror = () => {
+        console.error("Erro ao carregar logo 2º BEC")
+        reject(new Error("Failed to load 2BEC logo"))
+      }
+
+      img.src = "/images/2bec-logo-source.jpg"
+    })
   }
 
   private static async addBrasaoNacional(
@@ -125,62 +289,6 @@ export class PDFGenerator {
 
     stars.forEach((star) => {
       pdf.circle(star.x, star.y, 0.3, "F")
-    })
-  }
-
-  private static async addPNGLogo(pdf: jsPDF, x: number, y: number, width: number, height: number): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      img.crossOrigin = "anonymous"
-
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas")
-          const ctx = canvas.getContext("2d")
-
-          if (!ctx) {
-            reject(new Error("Canvas context not available"))
-            return
-          }
-
-          canvas.width = width * 10
-          canvas.height = height * 10
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height)
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-          const data = imageData.data
-
-          // Remover fundo branco/claro (tolerância para variações)
-          for (let i = 0; i < data.length; i += 4) {
-            const r = data[i]
-            const g = data[i + 1]
-            const b = data[i + 2]
-
-            // Se a cor for muito clara (próxima do branco), tornar transparente
-            if (r > 240 && g > 240 && b > 240) {
-              data[i + 3] = 0 // Alpha = 0 (transparente)
-            }
-          }
-
-          ctx.putImageData(imageData, 0, 0)
-          const dataUrl = canvas.toDataURL("image/png")
-
-          pdf.addImage(dataUrl, "PNG", x, y, width, height)
-          resolve()
-        } catch (error) {
-          console.error("Erro ao processar logo PNG:", error)
-          reject(error)
-        }
-      }
-
-      img.onerror = () => {
-        console.error("Erro ao carregar logo PNG")
-        reject(new Error("Failed to load PNG logo"))
-      }
-
-      img.src = "/images/2bec-logo-new.png"
     })
   }
 
@@ -440,7 +548,7 @@ export class PDFGenerator {
 
     try {
       await Promise.all([
-        this.addPNGLogo(pdf, x + 1, y + 1, 8, 8),
+        this.addProcessedLogo(pdf, x + 1, y + 1, 8, 8), // Usar logo processada também na geração múltipla
         this.addBrasaoNacional(pdf, x + width - 9, y + 1, 8, 8),
       ])
     } catch {

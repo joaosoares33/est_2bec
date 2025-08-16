@@ -10,34 +10,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    // Inicializar usuários padrão
-    userStorage.initializeDefaultUsers()
+    const timer = setTimeout(() => {
+      setIsClient(true)
 
-    // Verificar se há usuário logado
-    const savedUser = localStorage.getItem("current_user_2bec")
-    if (savedUser) {
       try {
-        const userData = JSON.parse(savedUser)
-        const currentUser = userStorage.findById(userData.id)
-        if (currentUser && currentUser.status === "active") {
-          setUser(currentUser)
-        } else {
-          localStorage.removeItem("current_user_2bec")
+        // Inicializar usuários padrão
+        userStorage.initializeDefaultUsers()
+
+        // Verificar usuário logado
+        const savedUser = localStorage.getItem("current_user_2bec")
+        if (savedUser) {
+          const userData = JSON.parse(savedUser)
+          const currentUser = userStorage.findById(userData.id)
+          if (currentUser?.status === "active") {
+            setUser(currentUser)
+          } else {
+            localStorage.removeItem("current_user_2bec")
+          }
         }
       } catch (error) {
-        console.error("Erro ao carregar usuário:", error)
-        localStorage.removeItem("current_user_2bec")
+        console.error("Erro na inicialização:", error)
+      } finally {
+        setIsLoading(false)
       }
-    }
-    setIsLoading(false)
+    }, 50)
+
+    return () => clearTimeout(timer)
   }, [])
 
   const login = async (loginData: LoginData): Promise<boolean> => {
+    if (!isClient) return false
+
     try {
       const authenticatedUser = userStorage.authenticate(loginData.username, loginData.password)
-
       if (authenticatedUser) {
         setUser(authenticatedUser)
         localStorage.setItem("current_user_2bec", JSON.stringify(authenticatedUser))
@@ -52,7 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("current_user_2bec")
+    if (isClient) {
+      localStorage.removeItem("current_user_2bec")
+    }
   }
 
   const value: AuthContextType = {
@@ -65,10 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando...</p>
+          <p className="text-gray-600">Carregando sistema...</p>
         </div>
       </div>
     )
