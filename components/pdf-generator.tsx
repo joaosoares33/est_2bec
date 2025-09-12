@@ -157,20 +157,21 @@ export class PDFGenerator {
             const normalizedX = pixelX / canvas.width
             const normalizedY = pixelY / canvas.height
 
-            // Área muito específica do texto "2º BEC" (apenas centro da faixa vermelha)
-            const isTextArea = normalizedY > 0.08 && normalizedY < 0.22 && normalizedX > 0.25 && normalizedX < 0.75
+            const isBlackBackground = r < 30 && g < 30 && b < 30
 
-            // Área muito específica dos símbolos do castelo (apenas centro da área azul)
-            const isCastleArea = normalizedY > 0.45 && normalizedY < 0.75 && normalizedX > 0.35 && normalizedX < 0.65
+            // Área do texto "2º BEC" na faixa vermelha (mais restritiva)
+            const isTextArea = normalizedY > 0.12 && normalizedY < 0.2 && normalizedX > 0.3 && normalizedX < 0.7
 
-            // Detectar apenas pixels realmente brancos (texto e símbolos)
-            const isReallyWhite = r > 245 && g > 245 && b > 245
+            // Área dos símbolos do castelo na parte azul (mais restritiva)
+            const isCastleArea = normalizedY > 0.5 && normalizedY < 0.75 && normalizedX > 0.4 && normalizedX < 0.6
 
-            // Preservar APENAS elementos brancos nas áreas muito específicas
-            const shouldPreserveWhite = isReallyWhite && (isTextArea || isCastleArea)
+            // Detectar pixels brancos (texto e símbolos)
+            const isWhite = r > 240 && g > 240 && b > 240
 
-            // Remover TODOS os pixels brancos exceto os específicos preservados
-            if (isReallyWhite && !shouldPreserveWhite) {
+            // Preservar apenas elementos brancos nas áreas específicas
+            const shouldPreserveWhite = isWhite && (isTextArea || isCastleArea)
+
+            if (isBlackBackground) {
               data[i + 3] = 0 // Alpha = 0 (transparente)
             } else if (shouldPreserveWhite) {
               // Garantir que elementos preservados sejam brancos puros
@@ -199,7 +200,7 @@ export class PDFGenerator {
         reject(new Error("Failed to load 2BEC logo"))
       }
 
-      img.src = "/images/2bec-logo-source.jpg"
+      img.src = "/images/2bec-logo-fundo-preto.jpeg"
     })
   }
 
