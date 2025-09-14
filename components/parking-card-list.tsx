@@ -518,7 +518,7 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <CardHeader className="pb-3 bg-gradient-to-r from-blue-50/50 to-blue-100/50 rounded-t-lg">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                       <Checkbox
                         checked={selectedCards.has(card.id)}
@@ -532,7 +532,7 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                     </div>
                     <Badge
                       variant={card.status === "active" ? "default" : "secondary"}
-                      className={`text-xs flex-shrink-0 ${
+                      className={`text-xs flex-shrink-0 whitespace-nowrap px-2 py-1 ${
                         card.status === "active"
                           ? "bg-green-100 text-green-800 border-green-200"
                           : "bg-red-100 text-red-800 border-red-200"
@@ -544,12 +544,12 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                   <p className="text-xs sm:text-sm text-blue-700 ml-6 sm:ml-8 truncate font-medium">{card.rank}</p>
                 </CardHeader>
 
-                <CardContent className="space-y-3 sm:space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-6">
                   {/* Informações do militar */}
                   <div className="space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm p-2 bg-blue-50/50 rounded-lg">
-                      <span className="font-semibold text-blue-700 flex-shrink-0">Nome de Guerra:</span>
-                      <span className="text-blue-900 truncate font-medium">{card.warName}</span>
+                    <div className="flex flex-col gap-1 text-xs sm:text-sm p-2 bg-blue-50/50 rounded-lg">
+                      <span className="font-semibold text-blue-700 text-xs">Nome de Guerra:</span>
+                      <span className="text-blue-900 font-medium break-words">{card.warName}</span>
                     </div>
                   </div>
 
@@ -560,51 +560,43 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                       <span className="font-semibold text-xs sm:text-sm text-blue-800">Veículo</span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
-                      <div className="min-w-0 p-2 bg-gray-50 rounded">
-                        <span className="font-medium text-muted-foreground block">Placa:</span>
-                        <p className="text-foreground font-mono text-xs sm:text-sm truncate font-bold">
-                          {card.vehiclePlate}
-                        </p>
+                    <div className="space-y-2">
+                      <div className="p-2 bg-gray-50 rounded">
+                        <span className="font-medium text-muted-foreground block text-xs">Placa:</span>
+                        <p className="text-foreground font-mono text-sm font-bold break-all">{card.vehiclePlate}</p>
                       </div>
+
+                      {card.vehicleModel && (
+                        <div className="p-2 bg-gray-50 rounded">
+                          <span className="font-medium text-muted-foreground text-xs">Modelo:</span>
+                          <p className="text-foreground text-sm break-words">{card.vehicleModel}</p>
+                        </div>
+                      )}
+
                       {card.vehicleType && (
-                        <div className="min-w-0 p-2 bg-gray-50 rounded">
-                          <span className="font-medium text-muted-foreground block">Tipo:</span>
-                          <p className="text-foreground text-xs sm:text-sm truncate">{card.vehicleType}</p>
+                        <div className="p-2 bg-gray-50 rounded">
+                          <span className="font-medium text-muted-foreground text-xs">Tipo:</span>
+                          <p className="text-foreground text-sm">{card.vehicleType}</p>
                         </div>
                       )}
                     </div>
-
-                    {card.vehicleModel && (
-                      <div className="text-xs sm:text-sm p-2 bg-gray-50 rounded">
-                        <span className="font-medium text-muted-foreground">Modelo:</span>
-                        <p className="text-foreground truncate">{card.vehicleModel}</p>
-                      </div>
-                    )}
-
-                    {card.vehicleType && (
-                      <div className="text-xs sm:text-sm p-2 bg-gray-50 rounded">
-                        <span className="font-medium text-muted-foreground">Tipo:</span>
-                        <p className="text-foreground">{card.vehicleType}</p>
-                      </div>
-                    )}
                   </div>
 
                   {/* Data de cadastro */}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground border-t pt-3">
                     <Calendar className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate">Cadastrado em {formatDate(card.createdAt)}</span>
+                    <span className="break-words">Cadastrado em {formatDate(card.createdAt)}</span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-1 sm:gap-2 pt-2">
+                  <div className="grid grid-cols-2 gap-2 pt-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleGeneratePDF(card)}
-                      className="bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border-green-200 text-xs sm:text-sm p-1 sm:p-2"
+                      className="bg-green-50 text-green-700 hover:bg-green-600 hover:text-white border-green-200 text-xs p-2 h-8"
                     >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                      <span className="hidden sm:inline">PDF</span>
+                      <FileText className="h-3 w-3 mr-1" />
+                      <span className="hidden xs:inline">PDF</span>
                     </Button>
 
                     {onEdit && (
@@ -612,10 +604,10 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                         variant="outline"
                         size="sm"
                         onClick={() => onEdit(card)}
-                        className="bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white border-orange-200 text-xs sm:text-sm p-1 sm:p-2"
+                        className="bg-orange-50 text-orange-700 hover:bg-orange-600 hover:text-white border-orange-200 text-xs p-2 h-8"
                       >
-                        <Edit className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                        <span className="hidden sm:inline">Editar</span>
+                        <Edit className="h-3 w-3 mr-1" />
+                        <span className="hidden xs:inline">Editar</span>
                       </Button>
                     )}
 
@@ -623,7 +615,7 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => handleToggleStatus(card.id)}
-                      className={`text-xs sm:text-sm p-1 sm:p-2 col-span-1 ${
+                      className={`text-xs p-2 h-8 ${
                         card.status === "active"
                           ? "bg-yellow-50 text-yellow-700 hover:bg-yellow-600 hover:text-white border-yellow-200"
                           : "bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white border-blue-200"
@@ -631,13 +623,13 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                     >
                       {card.status === "active" ? (
                         <>
-                          <ToggleRight className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                          <span className="hidden sm:inline">Desativar</span>
+                          <ToggleRight className="h-3 w-3 mr-1" />
+                          <span className="hidden xs:inline">Desativar</span>
                         </>
                       ) : (
                         <>
-                          <ToggleLeft className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                          <span className="hidden sm:inline">Ativar</span>
+                          <ToggleLeft className="h-3 w-3 mr-1" />
+                          <span className="hidden xs:inline">Ativar</span>
                         </>
                       )}
                     </Button>
@@ -646,9 +638,9 @@ export function ParkingCardList({ onEdit, onAdd }: ParkingCardListProps) {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(card.id, card.militaryName)}
-                      className="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border-red-200 text-xs sm:text-sm p-1 sm:p-2"
+                      className="bg-red-50 text-red-600 hover:bg-red-600 hover:text-white border-red-200 text-xs p-2 h-8"
                     >
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </CardContent>

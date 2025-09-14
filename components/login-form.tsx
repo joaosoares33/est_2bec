@@ -44,14 +44,26 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white p-4">
-      <Card className="w-full max-w-md">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative"
+      style={{
+        backgroundImage: "url(/images/fundo-geometrico-militar.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div className="absolute inset-0 bg-black/10"></div>
+
+      <Card className="w-full max-w-md relative z-10 bg-white/95 border-2 border-white/30 shadow-2xl">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src="/images/2bec-logo-login.jpg" alt="Logo do 2º BEC" className="h-20 w-auto object-contain" />
+            <img src="/images/2bec-logo-limpa.jpeg" alt="Logo do 2º BEC" className="h-20 w-auto object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold text-blue-900">Sistema de Estacionamento</CardTitle>
-          <CardDescription className="text-blue-700">2º Batalhão de Engenharia de Construção</CardDescription>
+          <CardDescription className="text-blue-700 font-medium">
+            2º Batalhão de Engenharia de Construção
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,6 +86,7 @@ export function LoginForm() {
                 placeholder="Digite seu usuário"
                 required
                 disabled={isLoading}
+                className="bg-white/90"
               />
             </div>
 
@@ -90,6 +103,7 @@ export function LoginForm() {
                 placeholder="Digite sua senha"
                 required
                 disabled={isLoading}
+                className="bg-white/90"
               />
             </div>
 
