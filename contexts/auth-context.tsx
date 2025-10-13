@@ -3,7 +3,7 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import type { User, LoginData, AuthContextType } from "@/lib/types"
-import { userStorage } from "@/lib/user-storage"
+import { AuthAPI } from "@/lib/auth-api"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -16,26 +16,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => {
       setIsClient(true)
 
-      try {
-        // Inicializar usuários padrão
-        userStorage.initializeDefaultUsers()
-
-        // Verificar usuário logado
-        const savedUser = localStorage.getItem("current_user_2bec")
-        if (savedUser) {
-          const userData = JSON.parse(savedUser)
-          const currentUser = userStorage.findById(userData.id)
-          if (currentUser?.status === "active") {
-            setUser(currentUser)
-          } else {
-            localStorage.removeItem("current_user_2bec")
+      const checkAuth = async () => {
+        try {
+          const authenticatedUser = await AuthAPI.checkAuth()
+          if (authenticatedUser) {
+            setUser(authenticatedUser)
           }
+        } catch (error) {
+          console.error("Erro ao verificar autenticação:", error)
+        } finally {
+          setIsLoading(false)
         }
-      } catch (error) {
-        console.error("Erro na inicialização:", error)
-      } finally {
-        setIsLoading(false)
       }
+
+      checkAuth()
     }, 50)
 
     return () => clearTimeout(timer)
@@ -45,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isClient) return false
 
     try {
-      const authenticatedUser = userStorage.authenticate(loginData.username, loginData.password)
+      const authenticatedUser = await AuthAPI.login(loginData)
       if (authenticatedUser) {
         setUser(authenticatedUser)
         localStorage.setItem("current_user_2bec", JSON.stringify(authenticatedUser))
