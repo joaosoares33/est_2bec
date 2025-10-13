@@ -17,6 +17,12 @@ let pool: mysql.Pool | null = null
 
 export function getPool(): mysql.Pool {
   if (!pool) {
+    console.log("[v0] Criando pool de conexões MySQL com config:", {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      user: dbConfig.user,
+      database: dbConfig.database,
+    })
     pool = mysql.createPool(dbConfig)
   }
   return pool
@@ -24,11 +30,25 @@ export function getPool(): mysql.Pool {
 
 // Função auxiliar para executar queries
 export async function query<T = any>(sql: string, params?: any[]): Promise<T> {
-  const connection = await getPool().getConnection()
+  console.log("[v0] Executando query SQL:", sql.substring(0, 100) + "...")
+  console.log("[v0] Parâmetros:", params)
+
   try {
-    const [results] = await connection.execute(sql, params)
-    return results as T
-  } finally {
-    connection.release()
+    const connection = await getPool().getConnection()
+    console.log("[v0] Conexão obtida do pool")
+
+    try {
+      const [results] = await connection.execute(sql, params)
+      console.log("[v0] Query executada com sucesso")
+      return results as T
+    } finally {
+      connection.release()
+      console.log("[v0] Conexão liberada")
+    }
+  } catch (error) {
+    console.error("[v0] Erro ao executar query:", error)
+    console.error("[v0] SQL:", sql)
+    console.error("[v0] Params:", params)
+    throw error
   }
 }

@@ -1,5 +1,6 @@
 import { query } from "./db-config"
 import type { ParkingCard, ParkingCardFormData } from "./types"
+import { globalThis } from "global"
 
 export class ParkingDB {
   // Buscar todos os cartões
@@ -33,46 +34,67 @@ export class ParkingDB {
 
   // Criar novo cartão
   static async create(formData: ParkingCardFormData, userId: string): Promise<ParkingCard> {
-    const now = new Date()
-    const validUntil = new Date(now)
+    try {
+      console.log("[v0] ParkingDB.create - Iniciando criação")
+      console.log("[v0] Dados recebidos:", formData)
+      console.log("[v0] User ID:", userId)
 
-    // Calcular data de validade baseada no tipo
-    if (formData.issueType === "provisorio") {
-      validUntil.setDate(now.getDate() + 30) // 30 dias
-    } else {
-      validUntil.setFullYear(now.getFullYear() + 1) // 1 ano
-    }
+      const now = new Date()
+      const validUntil = new Date(now)
 
-    const id = crypto.randomUUID()
+      // Calcular data de validade baseada no tipo
+      if (formData.issueType === "provisorio") {
+        validUntil.setDate(now.getDate() + 30) // 30 dias
+      } else {
+        validUntil.setFullYear(now.getFullYear() + 1) // 1 ano
+      }
 
-    const sql = `
-      INSERT INTO parking_cards (
-        id, military_name, rank, war_name, vehicle_plate, 
-        vehicle_model, vehicle_color, vehicle_type, issue_type, 
-        valid_until, status, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
-    `
+      const id = globalThis.crypto.randomUUID()
+      console.log("[v0] ID gerado:", id)
+      console.log("[v0] Data de validade calculada:", validUntil)
 
-    await query(sql, [
-      id,
-      formData.militaryName,
-      formData.rank,
-      formData.warName,
-      formData.vehiclePlate,
-      formData.vehicleModel,
-      formData.vehicleColor,
-      formData.vehicleType,
-      formData.issueType,
-      validUntil,
-      userId,
-    ])
+      const sql = `
+        INSERT INTO parking_cards (
+          id, military_name, rank, war_name, vehicle_plate, 
+          vehicle_model, vehicle_color, vehicle_type, issue_type, 
+          valid_until, status, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?)
+      `
 
-    return {
-      id,
-      ...formData,
-      validUntil: validUntil.toISOString(),
-      createdAt: now.toISOString(),
-      status: "active",
+      const params = [
+        id,
+        formData.militaryName,
+        formData.rank,
+        formData.warName,
+        formData.vehiclePlate,
+        formData.vehicleModel,
+        formData.vehicleColor,
+        formData.vehicleType,
+        formData.issueType,
+        validUntil,
+        userId,
+      ]
+
+      console.log("[v0] SQL:", sql)
+      console.log("[v0] Parâmetros:", params)
+
+      await query(sql, params)
+      console.log("[v0] INSERT executado com sucesso")
+
+      const result = {
+        id,
+        ...formData,
+        validUntil: validUntil.toISOString(),
+        createdAt: now.toISOString(),
+        status: "active" as const,
+      }
+
+      console.log("[v0] Cartão criado:", result)
+      return result
+    } catch (error) {
+      console.error("[v0] Erro em ParkingDB.create:", error)
+      console.error("[v0] Stack trace:", error instanceof Error ? error.stack : "N/A")
+      throw error
     }
   }
 
