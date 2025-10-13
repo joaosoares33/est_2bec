@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
-import { ParkingStorage } from "@/lib/parking-storage"
+import { ParkingAPI } from "@/lib/parking-api"
 import { MILITARY_RANKS, VEHICLE_COLORS } from "@/lib/constants"
 import type { ParkingCard, ParkingCardFormData } from "@/lib/types"
 
@@ -139,10 +139,7 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
       try {
         if (card) {
           console.log("Atualizando cartão ID:", card.id)
-          result = ParkingStorage.update(card.id, formData)
-          if (!result) {
-            throw new Error("Cartão não encontrado para atualização")
-          }
+          result = await ParkingAPI.update(card.id, formData)
           console.log("✅ Cartão atualizado:", result)
           toast({
             title: "🚗 Veículo atualizado com sucesso!",
@@ -150,23 +147,16 @@ export function ParkingCardForm({ card, onSuccess, onCancel }: ParkingCardFormPr
           })
         } else {
           console.log("Criando novo cartão...")
-          result = ParkingStorage.create(formData)
+          result = await ParkingAPI.create(formData)
           console.log("✅ Cartão criado:", result)
           toast({
             title: "✅ Inclusão de cartão com sucesso!",
             description: `Cartão de estacionamento para ${formData.warName} foi incluído no sistema`,
           })
         }
-      } catch (storageError) {
-        console.error("ERRO no storage:", storageError)
-        throw storageError
-      }
-
-      const allCards = ParkingStorage.getAll()
-      console.log("Total de cartões após salvamento:", allCards.length)
-
-      if (allCards.length > 0) {
-        console.log("Último cartão salvo:", allCards[allCards.length - 1])
+      } catch (apiError) {
+        console.error("ERRO na API:", apiError)
+        throw apiError
       }
 
       if (!card) {

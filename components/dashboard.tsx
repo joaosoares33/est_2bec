@@ -3,9 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ParkingStorage } from "@/lib/parking-storage"
+import { ParkingAPI } from "@/lib/parking-api"
 import { Car, Bike, Users, Clock, CheckCircle, XCircle, AlertTriangle, Calendar, Eye } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import type { ParkingCard } from "@/lib/types"
 
 function ExpiringCardsModal({ isOpen, onClose, cards }: { isOpen: boolean; onClose: () => void; cards: any[] }) {
   if (!isOpen) return null
@@ -82,24 +83,36 @@ function ExpiringCardsModal({ isOpen, onClose, cards }: { isOpen: boolean; onClo
 
 export function Dashboard() {
   const [showExpiringCards, setShowExpiringCards] = useState(false)
+  const [cards, setCards] = useState<ParkingCard[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const loadCards = async () => {
+      try {
+        setIsLoading(true)
+        const loadedCards = await ParkingAPI.getAll()
+        setCards(loadedCards)
+      } catch (error) {
+        console.error("Erro ao carregar cartões:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadCards()
+  }, [])
 
   const stats = useMemo(() => {
-    const cards = ParkingStorage.getAll()
-
-    // Estatísticas básicas
     const total = cards.length
     const active = cards.filter((card) => card.status === "active").length
     const inactive = cards.filter((card) => card.status === "inactive").length
 
-    // Por tipo de veículo
     const cars = cards.filter((card) => card.vehicleType === "Carro").length
     const motorcycles = cards.filter((card) => card.vehicleType === "Moto").length
 
-    // Por tipo de emissão
     const provisional = cards.filter((card) => card.issueType === "provisorio").length
     const definitive = cards.filter((card) => card.issueType === "definitivo").length
 
-    // Cartões próximos ao vencimento (próximos 30 dias)
     const now = new Date()
     const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
     const expiringSoonCards = cards.filter((card) => {
@@ -107,7 +120,6 @@ export function Dashboard() {
       return validUntil <= thirtyDaysFromNow && validUntil >= now
     })
 
-    // Cartões vencidos
     const expiredCards = cards.filter((card) => {
       const validUntil = new Date(card.validUntil)
       return validUntil < now
@@ -129,7 +141,18 @@ export function Dashboard() {
       expired: expiredCards.length,
       allExpiringCards,
     }
-  }, [])
+  }, [cards])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando dados do sistema...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

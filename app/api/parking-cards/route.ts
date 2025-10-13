@@ -5,37 +5,36 @@ import { ParkingDB } from "@/lib/parking-db"
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const query = searchParams.get("q")
+    const search = searchParams.get("search")
 
     let cards
-    if (query) {
-      cards = await ParkingDB.search(query)
+    if (search) {
+      cards = await ParkingDB.search(search)
     } else {
       cards = await ParkingDB.getAll()
     }
 
-    return NextResponse.json({ success: true, data: cards })
+    return NextResponse.json({ cards })
   } catch (error) {
     console.error("Erro ao buscar cartões:", error)
-    return NextResponse.json({ success: false, error: "Erro ao buscar cartões" }, { status: 500 })
+    return NextResponse.json({ message: "Erro ao buscar cartões" }, { status: 500 })
   }
 }
 
 // POST - Criar novo cartão
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { formData, userId } = body
+    const formData = await request.json()
 
-    if (!formData || !userId) {
-      return NextResponse.json({ success: false, error: "Dados inválidos" }, { status: 400 })
+    if (!formData) {
+      return NextResponse.json({ message: "Dados inválidos" }, { status: 400 })
     }
 
-    const card = await ParkingDB.create(formData, userId)
+    const card = await ParkingDB.create(formData, 1)
 
-    return NextResponse.json({ success: true, data: card }, { status: 201 })
+    return NextResponse.json({ card }, { status: 201 })
   } catch (error) {
     console.error("Erro ao criar cartão:", error)
-    return NextResponse.json({ success: false, error: "Erro ao criar cartão" }, { status: 500 })
+    return NextResponse.json({ message: "Erro ao criar cartão" }, { status: 500 })
   }
 }
