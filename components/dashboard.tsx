@@ -94,6 +94,7 @@ export function Dashboard() {
         setCards(loadedCards)
       } catch (error) {
         console.error("Erro ao carregar cartões:", error)
+        setCards([])
       } finally {
         setIsLoading(false)
       }
